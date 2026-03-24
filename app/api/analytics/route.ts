@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 
+interface Visit {
+  visitedAt: string | Date;
+  sessionId: string;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -63,7 +68,10 @@ export async function GET() {
       dailyBreakdown.push({
         date: key,
         visitors: sessions?.size ?? 0,
-        visits: dailyVisits.filter(v => v.visitedAt.toISOString().split("T")[0] === key).length,
+        visits: dailyVisits.filter((v: Visit) => {
+          const visitedAt = typeof v.visitedAt === "string" ? new Date(v.visitedAt) : v.visitedAt;
+          return visitedAt.toISOString().split("T")[0] === key;
+        }).length,
       });
     }
 
@@ -79,10 +87,12 @@ export async function GET() {
       select: { id: true, name: true },
     });
 
-    const locationStats = allLocations.map(loc => {
-      const found = locationVisits.find(lv => lv.locationId === loc.id);
-      return { name: loc.name, visits: found?._count?.id ?? 0 };
-    }).sort((a, b) => b.visits - a.visits);
+    const locationStats = allLocations
+      .map((loc) => {
+        const found = locationVisits.find((lv) => lv.locationId === loc.id);
+        return { name: loc.name, visits: found?._count?.id ?? 0 };
+      })
+      .sort((a, b) => b.visits - a.visits);
 
     // Completion stats: how many sessions completed all locations
     const totalLocCount = allLocations.length;
@@ -93,7 +103,7 @@ export async function GET() {
 
     const totalWalkers = sessionLocationCounts.length;
     const completedWalkers = sessionLocationCounts.filter(
-      s => (s._count?.locationId ?? 0) >= totalLocCount && totalLocCount > 0
+      (s) => (s._count?.locationId ?? 0) >= totalLocCount && totalLocCount > 0
     ).length;
 
     // Recent visits (last 20)
