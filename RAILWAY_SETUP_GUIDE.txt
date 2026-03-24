@@ -1,0 +1,522 @@
+================================================================================
+  SOUND WALK — COMPLETE SELF-HOSTING GUIDE FOR RAILWAY
+================================================================================
+
+This guide will walk you through every step of deploying your Sound Walk app
+on Railway (https://railway.app). No prior experience required.
+
+
+================================================================================
+  TABLE OF CONTENTS
+================================================================================
+
+  1. What You'll Need Before Starting
+  2. Create a GitHub Account (if you don't have one)
+  3. Create a GitHub Repository
+  4. Upload the Code to GitHub
+  5. Create a Railway Account
+  6. Deploy the App on Railway
+  7. Add a PostgreSQL Database
+  8. Set Environment Variables
+  9. Run the Database Setup
+  10. Seed the Database (Initial Data)
+  11. Test Your Deployment
+  12. Connect Your Custom Domain (Optional)
+  13. Managing Audio Files
+  14. Managing the App Day-to-Day
+  15. Updating the App
+  16. Troubleshooting
+  17. Cost Summary
+
+
+================================================================================
+  1. WHAT YOU'LL NEED BEFORE STARTING
+================================================================================
+
+  - A computer with internet access
+  - An email address
+  - About 30-60 minutes
+  - The Sound Walk source code (download from the Files button in DeepAgent)
+
+  You will create free accounts on:
+  - GitHub (https://github.com) — to store your code
+  - Railway (https://railway.app) — to host your app and database
+
+
+================================================================================
+  2. CREATE A GITHUB ACCOUNT (if you don't have one)
+================================================================================
+
+  a) Go to https://github.com/signup
+  b) Enter your email, create a password, choose a username
+  c) Complete the verification steps
+  d) You now have a GitHub account
+
+
+================================================================================
+  3. CREATE A GITHUB REPOSITORY
+================================================================================
+
+  a) Log in to GitHub
+  b) Click the "+" icon in the top-right corner
+  c) Select "New repository"
+  d) Fill in:
+     - Repository name: "sound-walk" (or whatever you prefer)
+     - Description: "Location-based sound walk app" (optional)
+     - Select "Private" (so only you can see the code)
+     - Do NOT check "Add a README file"
+     - Do NOT add .gitignore or license
+  e) Click "Create repository"
+  f) You'll see a page with setup instructions — keep this page open
+
+
+================================================================================
+  4. UPLOAD THE CODE TO GITHUB
+================================================================================
+
+  First, download the code:
+  a) In the DeepAgent conversation, click the "Files" button (top-right)
+  b) Download the project files
+  c) Extract the zip file on your computer
+
+  The code you need is inside the "nextjs_space" folder.
+  
+  OPTION A: Using GitHub's web interface (easiest, no terminal needed)
+  -------------------------------------------------------------------
+  a) In your new GitHub repository page, click "uploading an existing file"
+     (it's in the "…or push an existing repository" section)
+  b) Drag and drop ALL files and folders from inside the "nextjs_space" folder
+     into the upload area
+  c) Write a commit message like "Initial upload"
+  d) Click "Commit changes"
+  
+  NOTE: GitHub's web upload has limits. If the upload is too large,
+  use Option B instead.
+
+  OPTION B: Using the terminal / command line
+  -------------------------------------------------------------------
+  If you have Git installed on your computer:
+
+  a) Open a terminal (Mac: Terminal app, Windows: Git Bash or PowerShell)
+  b) Navigate to the nextjs_space folder:
+     
+     cd /path/to/your/downloaded/nextjs_space
+
+  c) Run these commands one by one:
+
+     git init
+     git add .
+     git commit -m "Initial commit"
+     git branch -M main
+     git remote add origin https://github.com/YOUR_USERNAME/sound-walk.git
+     git push -u origin main
+
+     (Replace YOUR_USERNAME with your actual GitHub username)
+
+  d) Enter your GitHub username and password (or personal access token)
+     when prompted
+
+  IMPORTANT: Make sure the root of your repository contains these files:
+    - package.json
+    - next.config.js
+    - prisma/ folder
+    - app/ folder
+    - components/ folder
+    - lib/ folder
+    - public/ folder
+    
+  The repository root should NOT be the "sound_walk_website" folder.
+  It should be the contents of "nextjs_space".
+
+
+================================================================================
+  5. CREATE A RAILWAY ACCOUNT
+================================================================================
+
+  a) Go to https://railway.app
+  b) Click "Login" or "Start a New Project"
+  c) Sign up with your GitHub account (recommended — makes deployment easy)
+     - Click "Login with GitHub"
+     - Authorize Railway to access your GitHub
+  d) You now have a Railway account
+
+  Railway's free trial gives you $5 of credits — enough to run this app
+  for several weeks. After that, the Hobby plan is $5/month.
+
+
+================================================================================
+  6. DEPLOY THE APP ON RAILWAY
+================================================================================
+
+  a) On Railway's dashboard, click "New Project"
+  b) Select "Deploy from GitHub repo"
+  c) Find and select your "sound-walk" repository
+  d) Railway will detect it's a Node.js app and start building
+  
+  WAIT — the first build will fail because we haven't set up the
+  database or environment variables yet. That's fine! We'll fix that next.
+
+
+================================================================================
+  7. ADD A POSTGRESQL DATABASE
+================================================================================
+
+  a) In your Railway project, click "+ New" (top-right area)
+  b) Select "Database"
+  c) Choose "Add PostgreSQL"
+  d) Railway will create a PostgreSQL database instantly
+  e) Click on the database service that appeared
+  f) Go to the "Variables" tab
+  g) Find "DATABASE_URL" — you'll need this value in the next step
+     (Click the copy icon to copy it)
+
+
+================================================================================
+  8. SET ENVIRONMENT VARIABLES
+================================================================================
+
+  Environment variables are settings your app needs to run.
+  Think of them as a configuration form.
+
+  a) Click on your app service (not the database — the other one)
+  b) Go to the "Variables" tab
+  c) Click "+ New Variable" for each of the following:
+
+  REQUIRED VARIABLES:
+  -------------------
+
+  Variable: DATABASE_URL
+  Value:    (paste the DATABASE_URL you copied from the database service)
+            It looks like: postgresql://postgres:xxxxx@xxxxx.railway.internal:5432/railway
+  
+  IMPORTANT: Railway can auto-link this! Instead of pasting manually:
+  - Click "+ New Variable"
+  - Click "Add Reference" 
+  - Select your PostgreSQL service
+  - Select DATABASE_URL
+  This creates a linked reference that stays up to date.
+
+  Variable: NEXTAUTH_SECRET
+  Value:    (a random string — you can generate one by going to
+            https://generate-secret.vercel.app/32 and copying the result)
+            Example: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+  
+  Variable: NEXTAUTH_URL
+  Value:    (leave this empty for now — we'll set it after the first
+            successful deploy when Railway gives you a URL)
+
+  OPTIONAL BUT RECOMMENDED:
+  -------------------------
+
+  Variable: NODE_ENV
+  Value:    production
+
+
+================================================================================
+  9. RUN THE DATABASE SETUP
+================================================================================
+
+  The database needs to be initialized with the correct tables.
+
+  a) In your Railway project, click on your app service
+  b) Go to the "Settings" tab
+  c) Find "Custom Build Command" and set it to:
+
+     npx prisma generate && npx prisma db push && yarn build
+
+  d) Find "Start Command" and set it to:
+
+     node server.js
+
+     (If this doesn't work, try: npx next start -p $PORT)
+
+  e) Click "Deploy" or trigger a redeploy from the "Deployments" tab
+  f) Watch the build logs — it should now:
+     - Install dependencies
+     - Generate the Prisma client
+     - Push the schema to the database
+     - Build the Next.js app
+
+  If the build succeeds, you'll see a green checkmark!
+
+
+================================================================================
+  10. SEED THE DATABASE (Initial Data)
+================================================================================
+
+  The seed script creates your admin account and the 15 Leipzig locations.
+
+  a) In Railway, go to your app service
+  b) Click on the "Settings" tab
+  c) Look for the terminal / shell option, or go to "Deployments" and 
+     click on the active deployment, then find "Run Command" or use
+     Railway CLI
+
+  OPTION A: Using Railway CLI (recommended)
+  ------------------------------------------
+  a) Install Railway CLI on your computer:
+     - Mac: brew install railway
+     - Windows: scoop install railway (or npm install -g @railway/cli)
+     - Linux: bash <(curl -fsSL cli.new)
+  b) In your terminal, log in:
+     railway login
+  c) Link to your project:
+     railway link
+     (select your project and service)
+  d) Run the seed command:
+     railway run npx prisma db seed
+
+  OPTION B: Modify the build command temporarily
+  ------------------------------------------
+  a) Change the Custom Build Command to:
+     npx prisma generate && npx prisma db push && npx prisma db seed && yarn build
+  b) Trigger a redeploy
+  c) After it succeeds, change the build command back to:
+     npx prisma generate && npx prisma db push && yarn build
+     (So the seed doesn't run on every deploy)
+
+  After seeding, your database will have:
+  - Admin account: john@doe.com / johndoe123
+  - 15 sound locations in Leipzig
+  - Default walk info and settings
+
+
+================================================================================
+  11. TEST YOUR DEPLOYMENT
+================================================================================
+
+  a) In Railway, go to your app service
+  b) Click "Settings" tab
+  c) Under "Networking", click "Generate Domain"
+     Railway will give you a URL like: sound-walk-production-xxxx.up.railway.app
+  d) Open that URL in your browser
+  e) You should see the Sound Walk welcome page!
+
+  NOW SET THE NEXTAUTH_URL:
+  a) Go back to your app's "Variables" tab
+  b) Set NEXTAUTH_URL to your Railway URL:
+     https://sound-walk-production-xxxx.up.railway.app
+     (use the exact URL Railway gave you, with https://)
+  c) This will trigger a redeploy automatically
+
+  TEST THE ADMIN PANEL:
+  a) Go to: https://your-railway-url.up.railway.app/login
+  b) Log in with: john@doe.com / johndoe123
+  c) You should see the admin dashboard
+  d) Try navigating through the tabs to confirm everything works
+
+  TEST ON YOUR PHONE:
+  a) Open the Railway URL on your phone's browser
+  b) Allow location access when prompted
+  c) Walk around — when near a location, audio should play
+  
+  IMPORTANT: For audio to work, you need to add audio files first.
+  See section 13 below.
+
+
+================================================================================
+  12. CONNECT YOUR CUSTOM DOMAIN (Optional)
+================================================================================
+
+  If you want your sound walk at something like soundwalk.yourdomain.com:
+
+  a) In Railway, go to your app service → "Settings" → "Networking"
+  b) Click "+ Custom Domain"
+  c) Enter your domain (e.g., soundwalk.yourdomain.com)
+  d) Railway will show you DNS records to add:
+     - Usually a CNAME record pointing to Railway's servers
+  e) Go to your domain registrar (where you bought your domain)
+     Examples: Namecheap, GoDaddy, Cloudflare, Google Domains
+  f) Add the DNS record Railway told you to add
+  g) Wait for DNS propagation (can take 5 minutes to 48 hours)
+  h) Once verified, update NEXTAUTH_URL in your Variables:
+     https://soundwalk.yourdomain.com
+
+
+================================================================================
+  13. MANAGING AUDIO FILES
+================================================================================
+
+  Audio files are served from the public/audio/ folder in your project.
+
+  HOW TO ADD AUDIO FILES:
+  
+  Method 1: Through the admin panel (easiest)
+  --------------------------------------------
+  a) Log in to /admin
+  b) Go to the "Locations" tab
+  c) Find the location you want to add audio to
+  d) Click the upload icon (arrow pointing up)
+  e) Select your audio file (.mp3, .wav, .ogg, etc.)
+  f) The file will be uploaded and linked automatically
+
+  IMPORTANT NOTE: Files uploaded through the admin panel are stored on
+  Railway's filesystem. Railway's filesystem is EPHEMERAL — meaning files
+  can be lost when the app redeploys. For permanent audio files,
+  use Method 2.
+
+  Method 2: Add files to the repository (most reliable)
+  --------------------------------------------
+  This is the recommended approach for permanent audio files.
+
+  a) On your computer, place your audio files in the public/audio/ folder
+     of your project
+  b) Name them something descriptive, like:
+     - thomaskirche.mp3
+     - marktplatz.mp3
+     - nikolaikirche.mp3
+  c) Push the changes to GitHub:
+     git add .
+     git commit -m "Add audio files"
+     git push
+  d) Railway will automatically redeploy with the new files
+  e) In the admin panel, set the Audio URL for each location to:
+     /audio/thomaskirche.mp3
+     /audio/marktplatz.mp3
+     etc.
+
+  Method 3: Use external audio URLs
+  --------------------------------------------
+  If your audio files are hosted elsewhere (SoundCloud, Dropbox, etc.):
+  a) Get the direct URL to the audio file
+  b) In the admin panel, paste it in the "Audio URL" field for the location
+  c) The app will play audio from that URL
+
+  AUDIO FILE TIPS:
+  - MP3 format works on all browsers and phones
+  - Keep files under 10 MB each for fast loading on mobile
+  - 128 kbps quality is usually sufficient for outdoor listening
+  - Test on your phone with headphones before the public launch
+
+
+================================================================================
+  14. MANAGING THE APP DAY-TO-DAY
+================================================================================
+
+  ADMIN LOGIN:
+  - URL: https://your-app-url/login
+  - Email: john@doe.com
+  - Password: johndoe123
+  - Change these credentials by updating the seed script and re-seeding,
+    or by creating a new user directly in the database.
+
+  CHANGING YOUR ADMIN PASSWORD:
+  Unfortunately, there's no "change password" UI built in. To change it:
+  a) Use Railway CLI: railway run npx prisma studio
+     This opens a database browser where you can edit records
+  b) Or update the seed script with your new password and re-seed
+
+  ADDING/EDITING LOCATIONS:
+  - Log in to /admin → Locations tab
+  - Click "Add Location" to create new ones
+  - Click the edit icon (pencil) to modify existing ones
+  - Click the toggle to hide/show locations
+  - Click the trash icon to delete
+
+  CUSTOMIZING THE LOOK:
+  - Theme tab: colors, fonts
+  - Welcome tab: landing page content
+  - Map tab: center point, zoom
+  - Audio tab: proximity radius, fade, volume
+  - Metadata tab: artist name, credits
+
+  VIEWING ANALYTICS:
+  - Log in to /admin → Analytics tab (first tab)
+  - See visitor counts, completion rates, location popularity
+  - Click "Refresh Analytics" for the latest data
+
+
+================================================================================
+  15. UPDATING THE APP
+================================================================================
+
+  If you make changes to the code:
+
+  a) Edit the files on your computer
+  b) Push to GitHub:
+     git add .
+     git commit -m "Description of changes"
+     git push
+  c) Railway automatically detects the push and redeploys
+  d) The new version is live in about 2-3 minutes
+
+  If you need to update the database schema:
+  a) Edit prisma/schema.prisma
+  b) Push to GitHub
+  c) The build command (npx prisma db push) handles schema updates
+
+
+================================================================================
+  16. TROUBLESHOOTING
+================================================================================
+
+  BUILD FAILS:
+  - Check the build logs in Railway → Deployments
+  - Common issue: missing environment variables → check Variables tab
+  - Common issue: DATABASE_URL not set or wrong format
+
+  APP SHOWS ERROR PAGE:
+  - Check if the database is running (click the PostgreSQL service)
+  - Check if all environment variables are set correctly
+  - Check the deployment logs for error messages
+
+  LOGIN DOESN'T WORK:
+  - Make sure you ran the seed script (section 10)
+  - Make sure NEXTAUTH_SECRET is set
+  - Make sure NEXTAUTH_URL matches your actual URL (with https://)
+
+  AUDIO DOESN'T PLAY:
+  - Check that audio files exist in public/audio/ or the URL is correct
+  - On mobile, users must interact with the page first (tap "Tap to listen")
+  - Check the browser console for errors (F12 → Console tab)
+  - Make sure the audio URL starts with /audio/ for local files
+
+  LOCATION NOT TRIGGERING:
+  - Check that the location is set to "Active" in admin
+  - Verify the GPS coordinates are correct
+  - Try increasing the proximity radius (admin → Audio tab or per-location)
+  - Check that location services are enabled on the phone
+
+  DATABASE ISSUES:
+  - Railway CLI: railway run npx prisma studio (visual database browser)
+  - Reset database: railway run npx prisma db push --force-reset
+    WARNING: This deletes all data!
+  - Re-seed: railway run npx prisma db seed
+
+
+================================================================================
+  17. COST SUMMARY
+================================================================================
+
+  GitHub:   Free (private repositories included)
+  Railway:  $5/month trial credit (free), then $5/month Hobby plan
+            This covers both the app AND the PostgreSQL database.
+  Domain:   Optional. Costs vary by registrar ($10-15/year typical)
+  Audio:    No cost — files are served from your app, no external service
+  
+  Total minimum cost: $0 for the trial period, then $5/month
+
+
+================================================================================
+  QUICK REFERENCE CARD
+================================================================================
+
+  App URL:        https://your-railway-url.up.railway.app
+  Admin panel:    https://your-railway-url.up.railway.app/admin
+  Login:          https://your-railway-url.up.railway.app/login
+  Admin email:    john@doe.com
+  Admin password: johndoe123
+
+  Audio folder:   public/audio/
+  Image folder:   public/images/
+
+  Key files:
+  - prisma/schema.prisma     → Database structure
+  - scripts/seed.ts          → Initial data (locations, admin user)
+  - app/page.tsx             → Main page
+  - components/sound-walk-map.tsx → Map & audio logic
+  - app/admin/               → Admin panel
+
+================================================================================
+  END OF GUIDE
+================================================================================

@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[data-hydration-error] {
+  display: none !important;
+}
+
+:root {
+  --accent: #14b8a6;
+  --accent-light: #5eead4;
+  --accent-dark: #0d9488;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area insets for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+/* Pulse animation for active location */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+.pulse-ring {
+  animation: pulse-ring 1.5s cubic-bezier(0.215,0.61,0.355,1) infinite;
+}
+
+/* Map marker bounce */
+@keyframes bounce-marker {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.bounce-marker {
+  animation: bounce-marker 1s ease-in-out infinite;
+}
+
+/* Leaflet tooltip styling */
+.sound-walk-tooltip {
+  background: rgba(3, 7, 18, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: white !important;
+  font-size: 12px !important;
+  padding: 5px 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+.sound-walk-tooltip::before {
+  border-top-color: rgba(3, 7, 18, 0.9) !important;
+}
+
+/* Push zoom controls above the Locations button on mobile */
+.leaflet-bottom.leaflet-right {
+  bottom: 50px !important;
+}
+@media (min-width: 640px) {
+  .leaflet-bottom.leaflet-right {
+    bottom: 10px !important;
+  }
+  .sound-walk-tooltip {
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+  }
+}
+
+/* Leaflet user pulse */
+@keyframes leaflet-pulse {
+  0% { stroke-opacity: 0.6; stroke-width: 2; }
+  100% { stroke-opacity: 0; stroke-width: 8; }
+}
+.leaflet-user-pulse {
+  animation: leaflet-pulse 1.5s ease-out infinite;
+}
+.leaflet-pulse-marker {
+  animation: leaflet-pulse 2s ease-out infinite;
+}

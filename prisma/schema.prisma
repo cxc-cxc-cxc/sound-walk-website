@@ -1,0 +1,100 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/sound_walk_website/nextjs_space/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String           @id @default(cuid())
+  name           String?
+  email          String           @unique
+  hashedPassword String
+  role           String           @default("user")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  visitedLocations VisitedLocation[]
+}
+
+model SoundLocation {
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  latitude        Float
+  longitude       Float
+  audioUrl        String?  
+  audioCloudPath  String?
+  audioIsPublic   Boolean  @default(true)
+  imageUrl        String?
+  imageCloudPath  String?
+  imageIsPublic   Boolean  @default(true)
+  proximityRadius Int      @default(50)
+  orderIndex      Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  visits          VisitedLocation[]
+}
+
+model VisitedLocation {
+  id         String        @id @default(cuid())
+  userId     String?
+  sessionId  String?
+  locationId String
+  visitedAt  DateTime      @default(now())
+  user       User?         @relation(fields: [userId], references: [id])
+  location   SoundLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, locationId])
+}
+
+model SiteVisit {
+  id         String   @id @default(cuid())
+  sessionId  String
+  userAgent  String   @default("")
+  referrer   String   @default("")
+  visitedAt  DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([visitedAt])
+}
+
+model SoundWalkInfo {
+  id              String @id @default(cuid())
+  title           String
+  description     String
+  aboutText       String
+  instructions    String
+  // Metadata
+  artistName      String   @default("")
+  year            String   @default("")
+  city            String   @default("")
+  credits         String   @default("")
+  // Theme
+  accentColor     String   @default("#14b8a6")
+  backgroundColor String   @default("#030712")
+  fontFamily      String   @default("system")
+  fontScale       Float    @default(1.0)
+  // Map settings
+  mapCenterLat    Float    @default(0)
+  mapCenterLng    Float    @default(0)
+  mapZoom         Float    @default(15)
+  mapStyle        String   @default("dark")
+  // Audio settings
+  defaultProximityRadius Int @default(50)
+  audioFadeDuration      Float @default(2.0)
+  audioBaseVolume        Float @default(0.8)
+  // Welcome page
+  showWelcomePage    Boolean @default(true)
+  welcomeTitle       String  @default("")
+  welcomeSubtitle    String  @default("")
+  welcomeImageUrl    String  @default("")
+  welcomeImageCloudPath String @default("")
+  welcomeImageIsPublic  Boolean @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
